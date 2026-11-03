@@ -15,7 +15,7 @@
       schedule and on demand.
     </p>
     <p style="text-align:center;margin-top:8px;font-size:14px;color:#6b7280">
-      <b style="color:#111">Version 19.0.1.0.0</b> &nbsp;·&nbsp; Odoo 19 &nbsp;·&nbsp; LGPL-3 &nbsp;·&nbsp; by Webooz
+      <b style="color:#111">Version 19.0.1.1.0</b> &nbsp;·&nbsp; Odoo 19 &nbsp;·&nbsp; LGPL-3 &nbsp;·&nbsp; by Webooz
     </p>
   </div>
 
@@ -90,6 +90,31 @@
         <td style="padding:8px;border:1px solid #e5e7eb">Position for any keyword, plus volume, difficulty and CPC</td>
       </tr>
     </table>
+  </div>
+
+  <div class="oe_row oe_spaced" style="background:#faf8ff;border:1px solid #ede9fe;border-radius:12px;padding:8px 14px 18px">
+    <h3 class="oe_slogan">How to install</h3>
+    <p style="max-width:860px;margin:0 auto 10px;font-size:15px;line-height:1.7">
+      This is a full app (it has its own models and code), so you install it like
+      any standard Odoo app: put the module folder in your Odoo <b>add-ons</b>
+      (modules) folder, then install it from <b>Apps</b>. Choose the way that
+      matches how your Odoo is hosted:
+    </p>
+    <div style="max-width:860px;margin:0 auto;font-size:15px;line-height:1.7">
+      <p style="margin:6px 0"><b>Odoo.sh</b> — add the <code>cf_keyword_tracker</code> folder to your project's add-ons (your GitHub repo or a submodule) and push. Odoo.sh rebuilds, then install from Apps.</p>
+      <p style="margin:6px 0"><b>Self-hosted / on-premise</b> — copy the <code>cf_keyword_tracker</code> folder into your server's add-ons path and restart Odoo:</p>
+      <pre style="max-width:860px;margin:8px auto;background:#0f172a;color:#e2e8f0;padding:12px 14px;border-radius:8px;font-size:13px;overflow:auto">git clone -b 19.0 https://github.com/Akash00-git/cf_keyword_tracker.git /tmp/src
+cp -r /tmp/src/cf_keyword_tracker /path/to/your/odoo/addons/cf_keyword_tracker
+# then restart the Odoo service</pre>
+      <p style="margin:6px 0"><b>Odoo Online</b> (the free odoo.com / SaaS) does not allow third-party apps — use Odoo.sh or a self-hosted Odoo.</p>
+    </div>
+    <p style="max-width:860px;margin:14px auto 0;font-size:15px;line-height:1.7">
+      Then, in Odoo: open <b>Apps</b> → click <b>Update Apps List</b> → search
+      <b>Keyword Position Tracker</b> → click <b>Install</b>.
+    </p>
+    <div class="oe_row oe_spaced" style="text-align:center">
+      <img src="install_steps.png" style="max-width:100%;height:auto;border-radius:10px;border:1px solid #e5e7eb"/>
+    </div>
   </div>
 
   <div class="oe_row oe_spaced" style="text-align:center;margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb">
