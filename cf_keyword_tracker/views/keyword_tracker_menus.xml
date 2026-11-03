@@ -1,0 +1,19 @@
+<odoo>
+  <menuitem id="menu_cf_keyword_root" name="Keyword Tracker"
+            web_icon="cf_keyword_tracker,static/description/icon.png"
+            sequence="55"/>
+
+  <menuitem id="menu_cf_keyword_dashboard" name="Keywords"
+            parent="menu_cf_keyword_root"
+            action="action_cf_open_dashboard" sequence="10"/>
+
+  <menuitem id="menu_cf_keyword_trend" name="Position trend"
+            parent="menu_cf_keyword_root"
+            action="action_cf_keyword_history" sequence="20"/>
+
+  <menuitem id="menu_cf_keyword_config" name="Configuration"
+            parent="menu_cf_keyword_root" sequence="90"/>
+  <menuitem id="menu_cf_keyword_settings" name="Settings"
+            parent="menu_cf_keyword_config"
+            action="action_cf_kt_settings" sequence="10"/>
+</odoo>

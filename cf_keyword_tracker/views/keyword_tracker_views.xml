@@ -1,0 +1,206 @@
+<odoo>
+
+  <!-- ─────────────────────────── List ─────────────────────────── -->
+  <record id="view_cf_keyword_tracker_list" model="ir.ui.view">
+    <field name="name">cf.keyword.tracker.list</field>
+    <field name="model">cf.keyword.tracker</field>
+    <field name="arch" type="xml">
+      <list string="Keywords" sample="1"
+            decoration-success="bucket == 'top3'"
+            decoration-info="bucket == 'top10'"
+            decoration-warning="bucket == 'top100'"
+            decoration-muted="status in ('not_ranking','new')">
+        <header>
+          <button name="action_collect_keywords" type="object" string="Collect keywords from site"/>
+          <button name="action_refresh" type="object" string="Refresh positions" class="btn-primary"/>
+        </header>
+        <field name="status" column_invisible="1"/>
+        <field name="bucket" column_invisible="1"/>
+        <field name="name" string="Keyword"/>
+        <field name="position" string="Position"/>
+        <field name="position_change" string="Change"
+               decoration-success="position_change &gt; 0"
+               decoration-danger="position_change &lt; 0"/>
+        <field name="best_position" string="Best" optional="show"/>
+        <field name="search_volume" string="Volume" optional="show"/>
+        <field name="difficulty" string="KD" optional="show"/>
+        <field name="traffic" string="Traffic" optional="show"/>
+        <field name="cpc" string="CPC" optional="hide"/>
+        <field name="clicks" string="Clicks" optional="hide"/>
+        <field name="impressions" string="Impr." optional="hide"/>
+        <field name="ctr" string="CTR %" optional="hide"/>
+        <field name="ranking_url" string="URL" widget="url" optional="show"/>
+        <field name="serp_features" string="SERP features" optional="hide"/>
+        <field name="bucket" string="Bucket" widget="badge" optional="show"
+               decoration-success="bucket == 'top3'"
+               decoration-info="bucket == 'top10'"
+               decoration-warning="bucket == 'top100'"/>
+        <field name="source" optional="hide"/>
+        <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+        <field name="last_checked" string="Last checked" optional="show"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ─────────────────────────── Form ─────────────────────────── -->
+  <record id="view_cf_keyword_tracker_form" model="ir.ui.view">
+    <field name="name">cf.keyword.tracker.form</field>
+    <field name="model">cf.keyword.tracker</field>
+    <field name="arch" type="xml">
+      <form string="Keyword">
+        <header>
+          <button name="action_refresh" type="object" string="Refresh" class="btn-primary"/>
+          <field name="status" widget="statusbar" statusbar_visible="new,tracked,not_ranking"/>
+        </header>
+        <sheet>
+          <div class="oe_title">
+            <label for="name"/>
+            <h1><field name="name" placeholder="e.g. corporate flowers dubai"/></h1>
+          </div>
+          <group>
+            <group string="Ranking">
+              <field name="position"/>
+              <field name="position_change"/>
+              <field name="best_position"/>
+              <field name="bucket"/>
+              <field name="ranking_url" widget="url"/>
+              <field name="last_checked"/>
+            </group>
+            <group string="Metrics">
+              <field name="search_volume"/>
+              <field name="difficulty"/>
+              <field name="cpc"/>
+              <field name="traffic"/>
+              <field name="clicks"/>
+              <field name="impressions"/>
+              <field name="ctr"/>
+              <field name="serp_features"/>
+            </group>
+          </group>
+          <group>
+            <group>
+              <field name="website_id"/>
+              <field name="page_url" widget="url"/>
+            </group>
+            <group>
+              <field name="source"/>
+              <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+            </group>
+          </group>
+          <notebook>
+            <page string="Position history">
+              <field name="history_ids" readonly="1">
+                <list>
+                  <field name="date"/>
+                  <field name="position"/>
+                  <field name="clicks"/>
+                  <field name="impressions"/>
+                  <field name="traffic"/>
+                  <field name="ranking_url" widget="url"/>
+                </list>
+                <graph string="Trend" type="line">
+                  <field name="date"/>
+                  <field name="position" type="measure"/>
+                </graph>
+              </field>
+            </page>
+          </notebook>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ─────────────────────────── Search ─────────────────────────── -->
+  <record id="view_cf_keyword_tracker_search" model="ir.ui.view">
+    <field name="name">cf.keyword.tracker.search</field>
+    <field name="model">cf.keyword.tracker</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="name" string="Keyword"/>
+        <field name="ranking_url"/>
+        <field name="tag_ids"/>
+        <filter name="ranking" string="Ranking" domain="[('status','=','tracked')]"/>
+        <filter name="not_ranking" string="Not ranking" domain="[('status','in',('not_ranking','new'))]"/>
+        <separator/>
+        <filter name="top3" string="Top 3" domain="[('bucket','=','top3')]"/>
+        <filter name="top10" string="Top 10" domain="[('bucket','in',('top3','top10'))]"/>
+        <filter name="top100" string="Top 100" domain="[('position','&gt;',0),('position','&lt;=',100)]"/>
+        <separator/>
+        <filter name="improved" string="Improved" domain="[('position_change','&gt;',0)]"/>
+        <filter name="declined" string="Declined" domain="[('position_change','&lt;',0)]"/>
+        <separator/>
+        <filter name="group_bucket" string="Bucket" context="{'group_by':'bucket'}"/>
+        <filter name="group_source" string="Source" context="{'group_by':'source'}"/>
+        <filter name="group_website" string="Website" context="{'group_by':'website_id'}"/>
+      </search>
+    </field>
+  </record>
+
+  <!-- ─────────────────────────── Graph (distribution) ─────────────────────────── -->
+  <record id="view_cf_keyword_tracker_graph" model="ir.ui.view">
+    <field name="name">cf.keyword.tracker.graph</field>
+    <field name="model">cf.keyword.tracker</field>
+    <field name="arch" type="xml">
+      <graph string="Keyword distribution" type="bar">
+        <field name="bucket"/>
+      </graph>
+    </field>
+  </record>
+
+  <!-- ─────────────────────────── History trend graph ─────────────────────────── -->
+  <record id="view_cf_keyword_history_graph" model="ir.ui.view">
+    <field name="name">cf.keyword.history.graph</field>
+    <field name="model">cf.keyword.history</field>
+    <field name="arch" type="xml">
+      <graph string="Position trend" type="line">
+        <field name="date"/>
+        <field name="name" string="Keyword"/>
+        <field name="position" type="measure"/>
+      </graph>
+    </field>
+  </record>
+
+  <record id="view_cf_keyword_history_list" model="ir.ui.view">
+    <field name="name">cf.keyword.history.list</field>
+    <field name="model">cf.keyword.history</field>
+    <field name="arch" type="xml">
+      <list string="History">
+        <field name="date"/>
+        <field name="name" string="Keyword"/>
+        <field name="position"/>
+        <field name="clicks"/>
+        <field name="impressions"/>
+        <field name="traffic"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ─────────────────────────── Actions ─────────────────────────── -->
+  <record id="action_cf_keyword_tracker" model="ir.actions.act_window">
+    <field name="name">Keywords</field>
+    <field name="res_model">cf.keyword.tracker</field>
+    <field name="view_mode">list,form,graph</field>
+    <field name="search_view_id" ref="view_cf_keyword_tracker_search"/>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">No keywords tracked yet</p>
+      <p>Click <b>Collect keywords from site</b> to pull every focus keyphrase and
+      meta keyword from your website pages, then <b>Refresh positions</b> to fetch
+      the live Google ranking of each one.</p>
+    </field>
+  </record>
+
+  <record id="action_cf_keyword_history" model="ir.actions.act_window">
+    <field name="name">Position trend</field>
+    <field name="res_model">cf.keyword.history</field>
+    <field name="view_mode">graph,list</field>
+  </record>
+
+  <!-- Opening the dashboard refreshes stale keywords first, then shows the list. -->
+  <record id="action_cf_open_dashboard" model="ir.actions.server">
+    <field name="name">Keyword Position Tracker</field>
+    <field name="model_id" ref="model_cf_keyword_tracker"/>
+    <field name="state">code</field>
+    <field name="code">action = model.action_open_dashboard()</field>
+  </record>
+
+</odoo>

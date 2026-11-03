@@ -1,0 +1,62 @@
+<odoo>
+  <record id="res_config_settings_view_form_cf_kt" model="ir.ui.view">
+    <field name="name">res.config.settings.cf.keyword.tracker</field>
+    <field name="model">res.config.settings</field>
+    <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//form" position="inside">
+        <app data-string="Keyword Tracker" string="Keyword Tracker" name="cf_keyword_tracker"
+             logo="/cf_keyword_tracker/static/description/icon.png">
+          <block title="Rank data provider" name="cf_kt_provider_block"
+                 help="Google blocks scraping, so positions come from an official or licensed API.">
+            <setting string="Provider" help="Where live positions and metrics are fetched from.">
+              <field name="cf_kt_provider"/>
+            </setting>
+            <setting string="Your domain" help="The site whose rankings to track. Blank = the website's own domain.">
+              <field name="cf_kt_target_domain" placeholder="www.example.com"/>
+            </setting>
+            <setting string="Search location">
+              <field name="cf_kt_location" placeholder="United Arab Emirates"/>
+            </setting>
+            <setting string="Language code">
+              <field name="cf_kt_language" placeholder="en"/>
+            </setting>
+            <setting string="Auto-refresh on open"
+                     help="When the dashboard opens, keywords older than this (minutes) are refreshed. 0 disables it.">
+              <field name="cf_kt_auto_refresh_minutes"/>
+            </setting>
+          </block>
+
+          <block title="Google Search Console (free, official)" name="cf_kt_gsc_block"
+                 invisible="cf_kt_provider != 'gsc'">
+            <setting string="Property" help="e.g. https://www.example.com/ or sc-domain:example.com">
+              <field name="cf_kt_gsc_site"/>
+            </setting>
+            <setting string="OAuth client ID"><field name="cf_kt_gsc_client_id"/></setting>
+            <setting string="OAuth client secret"><field name="cf_kt_gsc_client_secret" password="True"/></setting>
+            <setting string="OAuth refresh token"><field name="cf_kt_gsc_refresh_token" password="True"/></setting>
+          </block>
+
+          <block title="DataForSEO (paid — position, volume, KD, CPC)" name="cf_kt_dfs_block"
+                 invisible="cf_kt_provider != 'dataforseo'">
+            <setting string="Login"><field name="cf_kt_dfs_login"/></setting>
+            <setting string="Password"><field name="cf_kt_dfs_password" password="True"/></setting>
+          </block>
+
+          <block title="SerpApi (paid — position)" name="cf_kt_serpapi_block"
+                 invisible="cf_kt_provider != 'serpapi'">
+            <setting string="API key"><field name="cf_kt_serpapi_key" password="True"/></setting>
+          </block>
+        </app>
+      </xpath>
+    </field>
+  </record>
+
+  <record id="action_cf_kt_settings" model="ir.actions.act_window">
+    <field name="name">Settings</field>
+    <field name="res_model">res.config.settings</field>
+    <field name="view_mode">form</field>
+    <field name="target">current</field>
+    <field name="context">{'module': 'cf_keyword_tracker'}</field>
+  </record>
+</odoo>
