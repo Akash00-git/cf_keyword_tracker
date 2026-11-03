@@ -1,6 +1,6 @@
 {
     'name': 'Keyword Position Tracker',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Keyword rank tracker & Google position checker for Odoo — live '
                'SERP rankings, search volume, difficulty, CPC & traffic, history and trends',
     'description': """
@@ -45,12 +45,13 @@ search position tool, or an "Ahrefs for Odoo" / "SEMrush for Odoo" alternative.
     'support': 'akash00.hit@gmail.com',
     'maintainer': 'Akash',
     'license': 'LGPL-3',
-    'depends': ['website'],
+    'depends': ['website', 'mail'],
     'external_dependencies': {'python': []},
     'data': [
         'security/ir.model.access.csv',
         'data/ir_cron.xml',
         'views/keyword_tracker_views.xml',
+        'views/keyword_competitor_views.xml',
         'views/res_config_settings_views.xml',
         'views/keyword_tracker_menus.xml',
     ],

@@ -104,6 +104,17 @@
                 </graph>
               </field>
             </page>
+            <page string="Competitors">
+              <field name="competitor_rank_ids" readonly="1">
+                <list>
+                  <field name="competitor_name"/>
+                  <field name="position" string="Their position"/>
+                  <field name="our_position" string="Your position"/>
+                  <field name="url" widget="url"/>
+                  <field name="date"/>
+                </list>
+              </field>
+            </page>
           </notebook>
         </sheet>
       </form>
@@ -125,6 +136,7 @@
         <filter name="top3" string="Top 3" domain="[('bucket','=','top3')]"/>
         <filter name="top10" string="Top 10" domain="[('bucket','in',('top3','top10'))]"/>
         <filter name="top100" string="Top 100" domain="[('position','&gt;',0),('position','&lt;=',100)]"/>
+        <filter name="striking" string="Striking distance (11-20)" domain="[('striking_distance','=',True)]"/>
         <separator/>
         <filter name="improved" string="Improved" domain="[('position_change','&gt;',0)]"/>
         <filter name="declined" string="Declined" domain="[('position_change','&lt;',0)]"/>
@@ -193,6 +205,20 @@
     <field name="name">Position trend</field>
     <field name="res_model">cf.keyword.history</field>
     <field name="view_mode">graph,list</field>
+  </record>
+
+  <record id="action_cf_keyword_quickwins" model="ir.actions.act_window">
+    <field name="name">Quick wins</field>
+    <field name="res_model">cf.keyword.tracker</field>
+    <field name="view_mode">list,form,graph</field>
+    <field name="domain">[('striking_distance','=',True)]</field>
+    <field name="search_view_id" ref="view_cf_keyword_tracker_search"/>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">No quick wins right now</p>
+      <p>Keywords ranking in <b>positions 11-20</b> (just off page 1) show up here.
+      A small on-page improvement often pushes them onto page 1, so they are the
+      fastest wins. Refresh your keywords to populate this list.</p>
+    </field>
   </record>
 
   <!-- Opening the dashboard refreshes stale keywords first, then shows the list. -->

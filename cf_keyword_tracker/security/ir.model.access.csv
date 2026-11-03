@@ -2,3 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_cf_keyword_tracker_user,cf.keyword.tracker.user,model_cf_keyword_tracker,base.group_user,1,1,1,1
 access_cf_keyword_history_user,cf.keyword.history.user,model_cf_keyword_history,base.group_user,1,1,1,1
 access_cf_keyword_tag_user,cf.keyword.tag.user,model_cf_keyword_tag,base.group_user,1,1,1,1
+access_cf_keyword_competitor_user,cf.keyword.competitor.user,model_cf_keyword_competitor,base.group_user,1,1,1,1
+access_cf_keyword_competitor_rank_user,cf.keyword.competitor.rank.user,model_cf_keyword_competitor_rank,base.group_user,1,1,1,1

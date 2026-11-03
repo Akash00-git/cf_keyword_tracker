@@ -80,6 +80,14 @@ class CfKeywordTracker(models.Model):
 
     history_ids = fields.One2many(
         'cf.keyword.history', 'keyword_id', string='History')
+    striking_distance = fields.Boolean(
+        string='Striking distance', compute='_compute_striking_distance',
+        store=True,
+        help="Ranks just off page 1 (positions 11-20): small on-page "
+             "improvements can push it onto page 1 — a quick win.")
+    competitor_rank_ids = fields.One2many(
+        'cf.keyword.competitor.rank', 'keyword_id',
+        string='Competitor positions')
 
     _sql_constraints = [
         ('name_website_uniq', 'unique(name, website_id)',
@@ -115,6 +123,12 @@ class CfKeywordTracker(models.Model):
                 kw.bucket = 'top100'
             else:
                 kw.bucket = 'beyond'
+
+    @api.depends('position')
+    def _compute_striking_distance(self):
+        for kw in self:
+            p = kw.position
+            kw.striking_distance = bool(p and 10 < p <= 20)
 
     # ── Keyword collection from the website ─────────────────────────────
     @api.model
@@ -184,10 +198,13 @@ class CfKeywordTracker(models.Model):
         store a daily history point."""
         if not self:
             return
-        from .tracker_provider import fetch_keyword_metrics
+        from .tracker_provider import fetch_keyword_metrics, _domain_host
         results = fetch_keyword_metrics(self.env, self)
         today = fields.Date.context_today(self)
         History = self.env['cf.keyword.history'].sudo()
+        competitors = self.env['cf.keyword.competitor'].sudo().search(
+            [('active', '=', True)])
+        Rank = self.env['cf.keyword.competitor.rank'].sudo()
         for kw in self:
             data = results.get(kw.id) or {}
             vals = {'last_checked': fields.Datetime.now()}
@@ -222,6 +239,30 @@ class CfKeywordTracker(models.Model):
                     point.write(point_vals)
                 else:
                     History.create(dict(point_vals, keyword_id=kw.id, date=today))
+            serp = data.get('serp')
+            if competitors and serp is not None:
+                serp_map = {}
+                for r in serp:
+                    dom = (r.get('domain') or '').lower()
+                    if dom.startswith('www.'):
+                        dom = dom[4:]
+                    if dom and dom not in serp_map:
+                        serp_map[dom] = r
+                for comp in competitors:
+                    hit = serp_map.get(_domain_host(comp.name))
+                    existing = Rank.search(
+                        [('keyword_id', '=', kw.id),
+                         ('competitor_id', '=', comp.id)], limit=1)
+                    if hit:
+                        rvals = {'position': float(hit['position']),
+                                 'url': hit.get('url'), 'date': today}
+                        if existing:
+                            existing.write(rvals)
+                        else:
+                            Rank.create(dict(rvals, keyword_id=kw.id,
+                                             competitor_id=comp.id))
+                    elif existing:
+                        existing.write({'position': 0.0, 'date': today})
 
     def action_refresh(self):
         """Refresh the selected keywords now (manual Refresh button)."""
@@ -232,8 +273,68 @@ class CfKeywordTracker(models.Model):
 
     @api.model
     def _cf_cron_refresh_all(self):
-        """Daily scheduled refresh of every tracked keyword."""
-        self.search([])._cf_refresh()
+        """Daily scheduled refresh of every tracked keyword, then email a
+        digest if any keyword lost significant ground."""
+        kws = self.search([])
+        if not kws:
+            return
+        kws._cf_refresh()
+        self._cf_send_alerts(kws)
+
+    @api.model
+    def _cf_send_alerts(self, keywords):
+        """Email a digest of keywords that dropped since the previous check."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        if ICP.get_param('cf_keyword_tracker.alert_enabled') not in ('True', '1', True):
+            return
+        recipients = (ICP.get_param('cf_keyword_tracker.alert_email') or '').strip()
+        if not recipients:
+            return
+        try:
+            threshold = int(ICP.get_param('cf_keyword_tracker.alert_drop_threshold') or 3)
+        except (TypeError, ValueError):
+            threshold = 3
+        alerts = []
+        for kw in keywords:
+            prev, now = kw.previous_position, kw.position
+            if not (prev and prev > 0 and now and now > 0):
+                continue
+            lost = now - prev
+            reasons = []
+            if lost >= threshold:
+                reasons.append("dropped %d position(s): #%d \u2192 #%d"
+                               % (round(lost), round(prev), round(now)))
+            if prev <= 10 and now > 10:
+                reasons.append("fell off page 1")
+            if not reasons:
+                continue
+            ahead = kw.competitor_rank_ids.filtered(
+                lambda r: r.position and 0 < r.position < now)
+            alerts.append((kw, reasons, ahead))
+        if not alerts:
+            return
+        rows = ''
+        for kw, reasons, ahead in alerts:
+            comp = ', '.join('%s (#%d)' % (c.competitor_id.name, round(c.position))
+                             for c in ahead) or '\u2014'
+            rows += ('<tr><td style="padding:4px 8px">%s</td>'
+                     '<td style="padding:4px 8px">%s</td>'
+                     '<td style="padding:4px 8px">%s</td></tr>'
+                     % (kw.name, '; '.join(reasons), comp))
+        body = ('<p>These tracked keywords lost ground in the latest check:</p>'
+                '<table style="border-collapse:collapse;border:1px solid #ddd">'
+                '<tr style="background:#f5f5f5">'
+                '<th style="padding:4px 8px;text-align:left">Keyword</th>'
+                '<th style="padding:4px 8px;text-align:left">What changed</th>'
+                '<th style="padding:4px 8px;text-align:left">Competitors ahead</th>'
+                '</tr>%s</table>'
+                '<p style="color:#888">Sent by Keyword Position Tracker.</p>' % rows)
+        self.env['mail.mail'].sudo().create({
+            'subject': 'Keyword Tracker: %d keyword(s) dropped' % len(alerts),
+            'body_html': body,
+            'email_to': recipients,
+            'auto_delete': True,
+        }).send(raise_exception=False)
 
     @api.model
     def action_open_dashboard(self):
@@ -276,4 +377,72 @@ class CfKeywordHistory(models.Model):
     _sql_constraints = [
         ('keyword_date_uniq', 'unique(keyword_id, date)',
          'One history point per keyword per day.'),
+    ]
+
+
+class CfKeywordCompetitor(models.Model):
+    _name = 'cf.keyword.competitor'
+    _description = 'Tracked Competitor'
+    _order = 'name'
+
+    name = fields.Char(
+        string='Competitor domain', required=True,
+        help="e.g. competitor.com — matched against the Google results for "
+             "each of your tracked keywords.")
+    active = fields.Boolean(default=True)
+    website_id = fields.Many2one('website', string='Website', ondelete='cascade')
+    rank_ids = fields.One2many(
+        'cf.keyword.competitor.rank', 'competitor_id', string='Positions')
+    keywords_tracked = fields.Integer(
+        string='Keywords ranking', compute='_compute_stats',
+        help="How many of your tracked keywords this competitor ranks for.")
+    avg_position = fields.Float(
+        string='Avg position', digits=(16, 1), compute='_compute_stats')
+    keywords_ahead = fields.Integer(
+        string='Keywords ahead of you', compute='_compute_stats',
+        help="Keywords where this competitor ranks better than your site.")
+
+    _sql_constraints = [
+        ('name_website_uniq', 'unique(name, website_id)',
+         'This competitor is already tracked for this website.'),
+    ]
+
+    @api.depends('rank_ids.position', 'rank_ids.keyword_id.position')
+    def _compute_stats(self):
+        for comp in self:
+            ranked = comp.rank_ids.filtered(lambda r: r.position and r.position > 0)
+            comp.keywords_tracked = len(ranked)
+            comp.avg_position = round(
+                sum(ranked.mapped('position')) / len(ranked), 1) if ranked else 0.0
+            ahead = 0
+            for r in ranked:
+                our = r.keyword_id.position
+                if our and our > 0 and r.position < our:
+                    ahead += 1
+            comp.keywords_ahead = ahead
+
+
+class CfKeywordCompetitorRank(models.Model):
+    _name = 'cf.keyword.competitor.rank'
+    _description = 'Competitor Position'
+    _order = 'position asc'
+
+    keyword_id = fields.Many2one(
+        'cf.keyword.tracker', string='Keyword', required=True,
+        ondelete='cascade', index=True)
+    competitor_id = fields.Many2one(
+        'cf.keyword.competitor', string='Competitor', required=True,
+        ondelete='cascade', index=True)
+    name = fields.Char(related='keyword_id.name', store=True, string='Keyword')
+    competitor_name = fields.Char(
+        related='competitor_id.name', store=True, string='Competitor domain')
+    our_position = fields.Float(
+        related='keyword_id.position', string='Your position', digits=(16, 1))
+    position = fields.Float(string='Competitor position', digits=(16, 1))
+    url = fields.Char(string='URL')
+    date = fields.Date(string='Checked on')
+
+    _sql_constraints = [
+        ('kw_comp_uniq', 'unique(keyword_id, competitor_id)',
+         'One current position per competitor per keyword.'),
     ]

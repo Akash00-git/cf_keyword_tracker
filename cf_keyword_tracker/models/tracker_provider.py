@@ -137,6 +137,14 @@ def _dataforseo(env, keywords, host, location, language):
                     pos = item.get('rank_absolute') or item.get('rank_group')
                     rank_url = item.get('url')
                     break
+            serp_list = []
+            for item in (result.get('items') or []):
+                if item.get('type') in ('organic', 'featured_snippet'):
+                    dom = _domain_host(item.get('domain') or item.get('url'))
+                    rnk = item.get('rank_absolute') or item.get('rank_group')
+                    if dom and rnk:
+                        serp_list.append({'domain': dom, 'position': float(rnk),
+                                          'url': item.get('url')})
             for item in (result.get('items') or []):
                 t = item.get('type')
                 if t and t not in ('organic',) and t not in features:
@@ -145,6 +153,7 @@ def _dataforseo(env, keywords, host, location, language):
                 'position': float(pos) if pos else None,
                 'url': rank_url,
                 'serp_features': ', '.join(features[:5]) or None,
+                'serp': serp_list,
             }
     for kw in keywords:
         data = by_keyword.get((kw.name or '').strip().lower())
@@ -208,10 +217,19 @@ def _serpapi(env, keywords, host, location, language):
         resp.raise_for_status()
         data = resp.json()
         pos, rank_url = None, None
+        serp_list = []
         for item in data.get('organic_results', []):
-            if _domain_host(item.get('link')) == host:
+            dom = _domain_host(item.get('link'))
+            rnk = item.get('position')
+            if dom and rnk:
+                serp_list.append({'domain': dom, 'position': float(rnk),
+                                  'url': item.get('link')})
+            if pos is None and dom == host:
                 pos = item.get('position')
                 rank_url = item.get('link')
-                break
-        out[kw.id] = {'position': float(pos), 'url': rank_url} if pos else {}
+        res = {'serp': serp_list}
+        if pos:
+            res['position'] = float(pos)
+            res['url'] = rank_url
+        out[kw.id] = res
     return out

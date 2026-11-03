@@ -7,6 +7,14 @@
             parent="menu_cf_keyword_root"
             action="action_cf_open_dashboard" sequence="10"/>
 
+  <menuitem id="menu_cf_keyword_quickwins" name="Quick wins"
+            parent="menu_cf_keyword_root"
+            action="action_cf_keyword_quickwins" sequence="15"/>
+
+  <menuitem id="menu_cf_keyword_competitors" name="Competitors"
+            parent="menu_cf_keyword_root"
+            action="action_cf_keyword_competitor" sequence="30"/>
+
   <menuitem id="menu_cf_keyword_trend" name="Position trend"
             parent="menu_cf_keyword_root"
             action="action_cf_keyword_history" sequence="20"/>

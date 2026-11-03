@@ -47,6 +47,21 @@
                  invisible="cf_kt_provider != 'serpapi'">
             <setting string="API key"><field name="cf_kt_serpapi_key" password="True"/></setting>
           </block>
+
+          <block title="Email alerts" name="cf_kt_alert_block"
+                 help="After the daily refresh, get an email if any keyword loses significant ground.">
+            <setting string="Email me when rankings drop">
+              <field name="cf_kt_alert_enabled"/>
+            </setting>
+            <setting string="Alert recipients" invisible="not cf_kt_alert_enabled"
+                     help="Comma-separated email addresses.">
+              <field name="cf_kt_alert_email" placeholder="you@example.com, boss@example.com"/>
+            </setting>
+            <setting string="Alert if a keyword drops by (positions)"
+                     invisible="not cf_kt_alert_enabled">
+              <field name="cf_kt_alert_drop_threshold"/>
+            </setting>
+          </block>
         </app>
       </xpath>
     </field>

@@ -31,6 +31,18 @@ class ResConfigSettings(models.TransientModel):
              "many minutes are refreshed. Set 0 to disable auto-refresh on open.",
         config_parameter='cf_keyword_tracker.auto_refresh_minutes')
 
+    # Email alerts
+    cf_kt_alert_enabled = fields.Boolean(
+        string='Email me when rankings drop',
+        config_parameter='cf_keyword_tracker.alert_enabled')
+    cf_kt_alert_email = fields.Char(
+        string='Alert recipients',
+        help="Comma-separated email addresses to notify after the daily check.",
+        config_parameter='cf_keyword_tracker.alert_email')
+    cf_kt_alert_drop_threshold = fields.Integer(
+        string='Alert if a keyword drops by (positions)', default=3,
+        config_parameter='cf_keyword_tracker.alert_drop_threshold')
+
     # Google Search Console (OAuth)
     cf_kt_gsc_site = fields.Char(
         string='Search Console property',
