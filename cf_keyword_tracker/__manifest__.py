@@ -1,8 +1,8 @@
 {
     'name': 'Keyword Position Tracker',
     'version': '19.0.1.0.0',
-    'summary': 'Track your website keywords\' live Google ranking position, '
-               'traffic, volume, difficulty and CPC — with history and trends',
+    'summary': 'Keyword rank tracker & Google position checker for Odoo — live '
+               'SERP rankings, search volume, difficulty, CPC & traffic, history and trends',
     'description': """
 Keyword Position Tracker
 ========================
@@ -34,6 +34,10 @@ their rules), so this module uses official / licensed providers:
   ANY keyword plus search volume, keyword difficulty, CPC and traffic.
 
 Columns automatically show whatever the active provider supplies.
+
+Ideal if you are searching for an Odoo keyword rank tracker, a Google position
+tracker / rank checker, SERP tracking, keyword ranking and rank monitoring, a
+search position tool, or an "Ahrefs for Odoo" / "SEMrush for Odoo" alternative.
 """,
     'category': 'Website/SEO',
     'author': 'Webooz',
