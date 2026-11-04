@@ -115,6 +115,116 @@ Setup
    auto-refreshes keywords that have gone stale, and a daily scheduled job keeps
    the history current.
 
+Connecting Google Search Console (step by step)
+===============================================
+
+Google Search Console is the free data source. To connect it you need four
+values: the **Property**, the **OAuth client ID**, the **OAuth client secret**
+and the **OAuth refresh token**. You create them once (about 10-15 minutes)
+across three Google websites. Use the **same Google account** throughout — the
+one that owns your site in Search Console.
+
+Before you start
+----------------
+
+Your website must already be verified in Google Search Console
+(https://search.google.com/search-console). Open it and note the exact property
+shown at the top-left — for example ``https://www.example.com/`` (a URL-prefix
+property) or ``sc-domain:example.com`` (a domain property). That exact text is
+your **Property** value (used in step 21).
+
+Step 1 — Create a Google Cloud project and enable the API
+---------------------------------------------------------
+
+1. Open https://console.cloud.google.com/ and sign in.
+2. In the top bar open the project dropdown -> **New project** -> give it a name
+   (e.g. *SEO Keyword Tracker*) -> **Create**, then select that project.
+3. In the top search bar type **Google Search Console API**, open it, and click
+   **Enable**.
+
+Step 2 — Set up the OAuth consent screen
+----------------------------------------
+
+4. Left menu -> **APIs & Services -> OAuth consent screen** (this opens the
+   *Google Auth Platform*).
+5. Click **Get started** and fill: **App name** (any name), **User support
+   email** (your email), **Audience** = **External**, **Contact email** (your
+   email). Agree and click **Create**.
+6. Open the **Branding** page and fill:
+
+   - **Application home page**: your site, e.g. ``https://www.example.com/``
+   - **Application privacy policy link**: your privacy page, e.g.
+     ``https://www.example.com/privacy-policy``
+   - If a message says **Authorised domains: Missing domain**, click
+     **Add domain**, enter your bare domain (``example.com`` — no https, no
+     www), and **Save**.
+   - Do **not** upload an app logo (it forces app verification).
+
+7. Open the **Audience** page and click **Publish app** -> **Confirm** so the
+   status becomes **In production**. (If you leave it in *Testing*, Google
+   expires the refresh token after 7 days.)
+
+Step 3 — Create the OAuth client (Client ID + Client secret)
+------------------------------------------------------------
+
+8. Left menu -> **Clients** -> **Create OAuth client** (older layout:
+   *Credentials -> Create credentials -> OAuth client ID*).
+9. **Application type** = **Web application**; give it a name (e.g.
+   *Odoo Keyword Tracker*).
+10. Under **Authorised redirect URIs** click **Add URI** and paste exactly
+    ``https://developers.google.com/oauthplayground``.
+11. Click **Create**. A box shows your **Client ID** and **Client secret** —
+    copy both. (Two of your four values.)
+
+Step 4 — Get the refresh token (OAuth Playground)
+-------------------------------------------------
+
+12. Open https://developers.google.com/oauthplayground/ (keep the trailing
+    slash).
+13. Click the **gear** icon (top-right) -> tick **Use your own OAuth
+    credentials** -> paste your **Client ID** and **Client secret** -> **Close**.
+14. On the left, in the **Input your own scopes** box, paste exactly
+    ``https://www.googleapis.com/auth/webmasters.readonly`` and click
+    **Authorize APIs**.
+15. Sign in with the Google account that owns your Search Console property.
+16. If you see **"Google hasn't verified this app"**, click **Advanced** ->
+    **Go to <your app name> (unsafe)** -> **Allow**. This is normal for your own
+    private app.
+17. Back in the Playground, under **Step 2** click **Exchange authorization code
+    for tokens**.
+18. Copy the **Refresh token** shown (a long value starting with ``1//``).
+
+Step 5 — Enter the values in Odoo
+---------------------------------
+
+19. In Odoo go to **Keyword Tracker -> Configuration -> Settings**.
+20. **Provider** = *Google Search Console*.
+21. **Property** = your exact Search Console property (e.g.
+    ``https://www.example.com/`` or ``sc-domain:example.com``).
+22. **OAuth client ID** = from step 11.
+23. **OAuth client secret** = from step 11.
+24. **OAuth refresh token** = from step 18.
+25. Click **Save**, then **Keyword Tracker -> Import from Search Console**. Your
+    ranking keywords appear with position, clicks, impressions and CTR.
+
+Tips and troubleshooting
+------------------------
+
+- The **Property** must match Search Console exactly (keep ``https://`` and the
+  trailing ``/`` for a URL-prefix property).
+- The **Client ID and secret in Odoo must be the same ones** used in the OAuth
+  Playground, or the refresh token will not work.
+- **Publish the app** (step 7), or Google revokes the refresh token after 7 days
+  and tracking stops.
+- The **refresh token** and **client secret** are passwords to your Search
+  Console data — keep them private. If they ever leak, delete the OAuth client
+  in Google Cloud and create a new one.
+- Search Console's **position is a 28-day average** over searches where your
+  site was actually shown — not a live, everyone-sees-it rank. Check the
+  **Impressions** column to judge how solid a position is. For true live,
+  de-personalised rankings and competitor positions, use a paid provider
+  (DataForSEO or SerpApi).
+
 .. note::
 
    Uninstall any time from **Apps -> Keyword Position Tracker -> Uninstall**.
