@@ -2,7 +2,8 @@
 # <akash00.hit@gmail.com>. See LICENSE for details.
 import logging
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ class CfKeywordTracker(models.Model):
         [('seo_coach', 'SEO Coach keyphrase'),
          ('related', 'Related keyphrase'),
          ('meta', 'Website meta keywords'),
+         ('gsc', 'Search Console'),
          ('manual', 'Added manually')],
         string='Source', default='manual')
     tag_ids = fields.Many2many('cf.keyword.tag', string='Tags')
@@ -191,6 +193,63 @@ class CfKeywordTracker(models.Model):
                 'type': 'success', 'sticky': False,
             },
         }
+
+    @api.model
+    def action_menu_collect(self):
+        """Menu entry: collect keywords from the website's pages, refresh them,
+        then open the list."""
+        created = self.cf_collect_keywords()
+        if created:
+            created._cf_refresh()
+        return self.env['ir.actions.actions']._for_xml_id(
+            'cf_keyword_tracker.action_cf_keyword_tracker')
+
+    @api.model
+    def cf_import_from_gsc(self, limit=250):
+        """Create tracked keywords from the queries Search Console reports for
+        the site — every keyword you already rank for — with their current
+        position, clicks, impressions and CTR. Idempotent (skips existing)."""
+        provider = self.env['ir.config_parameter'].sudo().get_param(
+            'cf_keyword_tracker.provider')
+        if provider != 'gsc':
+            raise UserError(_(
+                "Import from Search Console needs the Google Search Console "
+                "provider. Choose it in Configuration -> Settings first."))
+        from .tracker_provider import fetch_gsc_queries
+        rows = fetch_gsc_queries(self.env, limit=limit)
+        website = self.env['website'].get_current_website() or \
+            self.env['website'].search([], limit=1)
+        existing = {k.lower() for k in self.with_context(active_test=False)
+                    .search([('website_id', '=', website.id)]).mapped('name')}
+        today = fields.Date.context_today(self)
+        History = self.env['cf.keyword.history'].sudo()
+        created = self.browse()
+        for r in rows:
+            if r['query'].lower() in existing:
+                continue
+            existing.add(r['query'].lower())
+            pos = r['position']
+            kw = self.create({
+                'name': r['query'], 'website_id': website.id, 'source': 'gsc',
+                'position': pos, 'best_position': pos,
+                'status': 'tracked' if pos and pos > 0 else 'not_ranking',
+                'clicks': r['clicks'], 'impressions': r['impressions'],
+                'ctr': r['ctr'], 'last_checked': fields.Datetime.now(),
+            })
+            created |= kw
+            if pos and pos > 0:
+                History.create({
+                    'keyword_id': kw.id, 'date': today, 'position': pos,
+                    'clicks': r['clicks'], 'impressions': r['impressions'],
+                })
+        return created
+
+    @api.model
+    def action_menu_import_gsc(self):
+        """Menu entry: import keywords from Search Console, then open the list."""
+        self.cf_import_from_gsc()
+        return self.env['ir.actions.actions']._for_xml_id(
+            'cf_keyword_tracker.action_cf_keyword_tracker')
 
     # ── Refresh (fetch live positions from the active provider) ─────────
     def _cf_refresh(self):

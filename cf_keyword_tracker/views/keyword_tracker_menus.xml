@@ -7,6 +7,14 @@
             parent="menu_cf_keyword_root"
             action="action_cf_open_dashboard" sequence="10"/>
 
+  <menuitem id="menu_cf_keyword_import_gsc" name="Import from Search Console"
+            parent="menu_cf_keyword_root"
+            action="action_cf_import_gsc" sequence="12"/>
+
+  <menuitem id="menu_cf_keyword_collect" name="Collect from website"
+            parent="menu_cf_keyword_root"
+            action="action_cf_collect_keywords" sequence="13"/>
+
   <menuitem id="menu_cf_keyword_quickwins" name="Quick wins"
             parent="menu_cf_keyword_root"
             action="action_cf_keyword_quickwins" sequence="15"/>

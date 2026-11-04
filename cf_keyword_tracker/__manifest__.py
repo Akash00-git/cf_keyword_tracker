@@ -1,6 +1,6 @@
 {
     'name': 'Keyword Position Tracker',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'summary': 'Keyword rank tracker & Google position checker for Odoo — live '
                'SERP rankings, search volume, difficulty, CPC & traffic, history and trends',
     'description': """

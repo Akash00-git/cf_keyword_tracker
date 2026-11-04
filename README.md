@@ -17,8 +17,9 @@ Apps List** and install **Keyword Position Tracker**.
 > app. That is a limitation of the Upload feature, not the module.
 
 ## Use
-1. **Keyword Tracker → Keywords → Collect keywords from site** — pulls every
-   focus keyphrase (SEO Coach) and website meta keyword from your pages.
+1. **Keyword Tracker → Import from Search Console** (when the provider is GSC) —
+   adds every query your site already ranks for, with its position. Or
+   **Collect from website** to read focus keyphrases (SEO Coach) and meta keywords.
 2. **Keyword Tracker → Configuration → Settings** — choose a data source and
    enter credentials:
    - **Google Search Console** (free, official) → exact position, clicks,

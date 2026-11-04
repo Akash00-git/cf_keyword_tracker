@@ -107,6 +107,37 @@ def _gsc(env, keywords):
     return out
 
 
+def fetch_gsc_queries(env, limit=250):
+    """List the top queries Search Console reports for the configured site —
+    i.e. the keywords the site already ranks for, with their position, clicks,
+    impressions and CTR over the last 28 days. GSC provider only."""
+    site = _param(env, 'gsc_site')
+    if not site:
+        raise ValueError('Set the Search Console property (gsc_site) in settings')
+    token = _gsc_access_token(env)
+    end = date.today()
+    start = end - timedelta(days=28)
+    url = ('https://searchconsole.googleapis.com/webmasters/v3/sites/%s/'
+           'searchAnalytics/query' % requests.utils.quote(site, safe=''))
+    resp = requests.post(
+        url, headers={'Authorization': 'Bearer %s' % token},
+        json={'startDate': start.isoformat(), 'endDate': end.isoformat(),
+              'dimensions': ['query'], 'rowLimit': limit}, timeout=_TIMEOUT)
+    resp.raise_for_status()
+    out = []
+    for row in resp.json().get('rows', []):
+        query = (row.get('keys') or [''])[0].strip()
+        if not query:
+            continue
+        out.append({
+            'query': query,
+            'position': round(float(row.get('position') or 0), 1),
+            'clicks': int(row.get('clicks') or 0),
+            'impressions': int(row.get('impressions') or 0),
+            'ctr': round(float(row.get('ctr') or 0) * 100, 2),
+        })
+    return out
+
 # ── DataForSEO (position + volume + difficulty + CPC) ───────────────────────
 def _dfs_auth(env):
     return (_param(env, 'dfs_login'), _param(env, 'dfs_password'))

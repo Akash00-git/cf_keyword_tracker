@@ -2,7 +2,7 @@
 Keyword Position Tracker
 ========================
 
-:Version: 19.0.1.1.0 (for Odoo 19, LGPL-3, by Webooz)
+:Version: 19.0.1.2.0 (for Odoo 19, LGPL-3, by Webooz)
 
 Track where your Odoo website ranks on Google for every keyword you target, in
 one premium dashboard — position, change, search volume, difficulty, CPC,
@@ -104,9 +104,11 @@ Troubleshooting
 Setup
 =====
 
-1. **Collect keywords** — open **Keyword Tracker -> Keywords** and click
-   **Collect keywords from site**. Every focus keyphrase (SEO Coach) and website
-   meta keyword on your pages, posts and products is added.
+1. **Add keywords** — in **Keyword Tracker**, use **Collect from website**
+   (reads your pages' focus keyphrases and website meta keywords) and/or, if
+   your provider is Google Search Console, **Import from Search Console** (adds
+   every query your site already ranks for, with its position). You can also add
+   keywords by hand with **New**.
 2. **Connect a data source** — **Keyword Tracker -> Configuration -> Settings**,
    choose a provider and enter its credentials, set your domain and location.
 3. **Refresh** — click **Refresh positions**. Opening the dashboard also
